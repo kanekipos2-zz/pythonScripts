@@ -1,72 +1,160 @@
-import pkgutil
-from tkinter import filedialog, messagebox
+import keyboard, mouse, time, datetime
 from tkinter import *
-import os
-from tkinter.ttk import Combobox
-from shutil import copytree
+from pyscreeze import pixel
 
-def askPath():
-    def clicked():
-        path = filedialog.askdirectory()
-        if (path.endswith('Steam')):
-            global p
-            p = path
-            window.destroy()
-        else: txt.configure(text="Its not a steam folder, try again...")
-    window = Tk()
-    window.title("path?")
-    window.geometry('220x25')
-    window.resizable(0, 0)
-    btn = Button(window, text="path", command=clicked)
-    btn.grid(column=0, row=0)
-    txt = Label(window, text="Select steam folder...")
-    txt.grid(column=1, row=0)
-    window.mainloop()
-    return(p)
 
-def getPath():
-    if os.path.exists('C:/Program Files (x86)/Steam'):
-        return 'C:/Program Files (x86)/Steam'
+def getPix(pos):
+    while (True):
+        try:
+            pix = pixel(pos[0], pos[1])
+            return (pix)
+        except:
+            print('pixGetErr, tryin again...')
+
+
+def isGreen(p):
+    if getPix(p) == (34, 142, 93): return True
+    return False
+
+def exec(vk):
+    if(times[vk] is None):
+        lbl.configure(text='Скрипт работает. (Вкладка #'+str(vk+1)+')')
+        window.update()
+
+        mouse.move(data[0][0], data[0][1], True, 0.1)
+        mouse.click('left')
+
+        time.sleep(0.3)
+
+        keyboard.press_and_release('BACKSPACE')
+
+        time.sleep(0.3)
+
+        keyboard.write('2')
+
+        time.sleep(0.3)
+
+        mouse.move(data[1][0], data[1][1], True, 0.1)
+        mouse.click('left')
+
+        time.sleep(1)
+
+        if(isGreen(data[2])):
+            keyboard.press('F5')
+            time.sleep(0.5)
+            return()
+        else:
+            times[vk] = datetime.datetime.now()
+            return()
     else:
-        return askPath()
+        delta = datetime.datetime.now() - times[vk]
+        if(delta.total_seconds() > 40):
+            times[vk] = None
+            mouse.move(ssilki[vk][0], ssilki[vk][1], True, 0.1)
+            mouse.click('left')
+            return()
+        else:
+            lbl.configure(text='Ожидаю покупку в '+str(vk+1)+' вкладке')
+            window.update()
+            time.sleep(1.0)
+            return()
 
-def copyCFG():
-    global idFrom, idTo, path, ids, window
-    path += '/userdata/'
-    if not idFrom.get() or not idTo.get() or not idFrom.get() in ids or not idTo.get() in ids:
-        messagebox.showerror('err', 'u selected wrong id')
-    else:
-        for i in ['/7/', '/570/', '/config/', '/ugc/', '/ugcmsgcache/']:
-            try:
-                copytree(path+idFrom.get()+i, path+idTo.get()+i, dirs_exist_ok=True)
-            except PermissionError:
-                messagebox.showerror("cfgTransmittor by kanekipos2", "Permission denied!")
-                return
-
-        messagebox.showinfo('cfgTransmittor by kanekipos2', 'Success!')
-        window.destroy()
-
-
-path = getPath()
-ids = os.listdir(path + '/userdata')
+def cycleEnd():
+    a = 3
+    while (a > 0):
+        lbl.configure(text='ESC - выход, F8 - пауза (' + str(a.__round__(1)) + 's)')
+        window.update()
+        if (keyboard.is_pressed('ESC')):
+            lbl.destroy()
+            exit(0)
+        if (keyboard.is_pressed('F8')):
+            lbl.configure(text='На паузе. F8 для продолжения работы.')
+            lbl.update()
+            time.sleep(0.3)
+            while (not keyboard.is_pressed('F8')):
+                lbl.update()
+            time.sleep(0.3)
+        a -= 0.1
+        time.sleep(0.09)
 
 window = Tk()
-window.title("cfgTransmittor by kanekipos2")
-window.geometry('400x60')
-window.resizable(0, 0)
+window.wm_attributes("-topmost", 1)
+window.title('lolzScriptMenu')
+window.geometry('400x50')
+lbl = Label(window, text='Сколько окон необходимо поддерживать?')
+lbl.grid(column=0, row=0)
+window.update()
 
-Label(window, text="copy from").grid(column=0, row=0)
-Label(window, text="to").grid(column=1, row=0)
+def clicked():
+    global clicked
+    clicked = True
+    pass
 
-idFrom = Combobox(window)
-idFrom['values'] = ids
-idFrom.grid(column=0, row=1, padx = 8)
+btn = Button(window, text="->", command=clicked)
+txt = Entry(window, width=10)
+txt.grid(column=1, row=0)
+btn.grid(column=2, row=0)
+window.update()
+clicked = False
+while(not clicked):
+    window.update()
+windowcount = int(txt.get())
+txt.grid_forget()
+btn.grid_forget()
 
-idTo = Combobox(window)
-idTo['values'] = ids
-idTo.grid(column=1, row=1, padx = 8)
+vkladki = []
+ssilki = []
+data = []
+times = [None]*windowcount
 
-eButton = Button(window, text="execute", command=copyCFG).grid(column=2, row=1, padx = 8)
+for i in range(windowcount):
+    lbl.configure(text='Вкладка #'+str(i+1)+ ' (пробел)')
+    window.update()
+    while True:
+        window.update()
+        if keyboard.is_pressed('space'):
+            vkladki.append(mouse.get_position())
+            lbl.configure(text="...")
+            window.update()
+            time.sleep(0.5)
+            break
+    lbl.configure(text='Ссылка #' + str(i + 1) + ' (пробел)')
+    window.update()
+    while True:
+        window.update()
+        if keyboard.is_pressed('space'):
+            ssilki.append(mouse.get_position())
+            lbl.configure(text="...")
+            window.update()
+            time.sleep(0.5)
+            break
 
-window.mainloop()
+guitexts = ["окошко с вводом числа", "кнопка покупки", "зелёный цвет для проверки"]
 
+for lp in range(3):
+    lbl.configure(text=guitexts[lp] + " (пробел)")
+    window.update()
+    while True:
+        window.update()
+        if keyboard.is_pressed('space'):
+            data.append(mouse.get_position())
+            lbl.configure(text="...")
+            window.update()
+            time.sleep(0.5)
+            break
+
+lbl.configure(text="Ожидаю старта. (F8 - start, ESC - выйти из программы)")
+while True:
+    if keyboard.is_pressed('F8'): break
+    if(keyboard.is_pressed('ESC')):
+        lbl.destroy()
+        exit(0)
+    window.update()
+
+while(True):
+    for i in range(windowcount):
+        mouse.move(vkladki[i][0], vkladki[i][1], True, 0.1)
+        mouse.click('left')
+        exec(i)
+        time.sleep(2.0)
+    cycleEnd()
